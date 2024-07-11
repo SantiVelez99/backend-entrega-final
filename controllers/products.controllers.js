@@ -3,10 +3,14 @@ const Product = require('../models/products.model')
 
 async function getProducts(req, res){
     try {
-        res.send({
-            ok: true,
-            message: "Get exitoso"
-        })
+        const products = await Product.find()
+        if(products){
+            res.status(200).send({
+                ok: true,
+                message: "Get exitoso",
+                products: products
+            })
+        }
     } catch (error) {
         console.log(error)
         res.send({
@@ -19,12 +23,14 @@ async function getProducts(req, res){
 async function postProduct(req, res){
     try {
         const product = new Product(req.body)
-        if(req.file?.filename){
-            product.productImage = req.file.filename
-        }
         if(req.files){
-            product.productDescPictures = req.files
-        }
+            req.files.productImage?.forEach(image => {
+                product.productImage = {name: image.originalname, id: image.filename}
+            })
+            req.files.productDescPictures?.forEach(image =>{
+                product.productDescPictures.push({name: image.originalname, id: image.filename})
+            })
+        } 
         const newProduct = await product.save();
         res.status(201).send({
             ok: true,
