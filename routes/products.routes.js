@@ -6,15 +6,15 @@ const imgUpload = require('../middlewares/imgUpload')
 router.get('/products', productsController.getProducts)
 
 // GET product by ID
-router.get('/products/:id')
+router.get('/products/:id', productsController.getProductByID)
 
 // POST product
 router.post('/products', imgUpload, productsController.postProduct)
 
 // DELETE products by ID
-router.delete('/products/:id')
+router.delete('/products/:id', productsController.deleteProduct)
 
 // EDIT products by ID
-router.put('/products/:id')
+router.put('/products/:id', imgUpload, productsController.editProduct)
 
 module.exports = router;
