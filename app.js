@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
-const api_routes = require('./routes/products.routes')
+const api_routes = require('./routes/index.routes')
 
 
 // usar carpeta public
