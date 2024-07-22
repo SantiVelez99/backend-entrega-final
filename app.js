@@ -8,6 +8,7 @@ const api_routes = require('./routes/index.routes')
 app.use(express.static('public'))
 app.use(cors())
 app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({ extended: true }))
+
 app.use("/api", api_routes)
 module.exports = app

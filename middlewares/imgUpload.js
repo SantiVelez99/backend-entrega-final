@@ -7,6 +7,7 @@ const storage = multer.diskStorage({
         let folder;
         if(file.fieldname === "productImage") folder = 'public/images/products/card-images'
         if(file.fieldname === "productDescPictures") folder = 'public/images/products/extra-images'
+        if(file.fieldname === "productPortrait") folder = 'public/images/products/portrait-images'
         if(file.fieldname === "userAvatar") folder = 'public/images/users/user-avatar'
         cb(null, folder)
     },
@@ -22,6 +23,7 @@ const storage = multer.diskStorage({
 const imgUpload = multer({ storage: storage }).fields([
     {name:'productImage', maxCount: 1},
     {name:'productDescPictures', maxCount: 6},
+    {name:'productPortrait', maxCount: 1},
     {name:'userAvatar', maxCount: 1}
 ])
 module.exports = imgUpload

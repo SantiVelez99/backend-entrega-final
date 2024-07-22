@@ -60,6 +60,9 @@ async function postProduct(req, res) {
                     product.productDescPictures.push({ name: image.originalname, id: image.filename })
                 })
             }
+            if (req.files.productPortrait) {
+                req.files.productPortrait.forEach(image => product.productPortrait = { name: image.originalname, id: image.filename })
+            }
         }
         const newProduct = await product.save();
         if (!newProduct) {
@@ -87,20 +90,40 @@ async function editProduct(req, res) {
     try {
         const id = req.params.id
         const updtProduct = req.body
+        const oldProduct = await Product.findById(id)
         updtProduct.updatedAt = Date.now()
         if (req.files) {
             if (req.files.productImage) {
-                updtProduct.productImage = {}
                 req.files.productImage.forEach(image => {
                     updtProduct.productImage = { name: image.originalname, id: image.filename }
                 })
-            } 
+                if (updtProduct.productImage.id) {
+                    fs.unlinkSync(`./public/images/products/card-images/${oldProduct.productImage.id}`)
+                }
+            } else {
+                delete updtProduct.productImage
+            }
             if (req.files.productDescPictures) {
                 updtProduct.productDescPictures = []
                 req.files.productDescPictures.forEach(image => {
                     updtProduct.productDescPictures.push({ name: image.originalname, id: image.filename })
                 })
-            } 
+                for (let i = 0; i < updtProduct.productDescPictures.length; i++) {
+                    fs.unlinkSync(`./public/images/products/extra-images/${oldProduct.productDescPictures[i].id}`)
+                }
+            } else {
+                delete updtProduct.productDescPictures
+            }
+            if (req.files.productPortrait) {
+                req.files.productPortrait.forEach(image => {
+                    updtProduct.productPortrait = { name: image.originalname, id: image.filename }
+                })
+                if (updtProduct.productPortrait.id) {
+                    fs.unlinkSync(`./public/images/products/card-images/${oldProduct.productPortrait.id}`)
+                }
+            } else {
+                delete updtProduct.productPortrait
+            }
         }
         const updatedProduct = await Product.findByIdAndUpdate(id, updtProduct, { new: true })
         if (!updatedProduct) {
@@ -128,16 +151,12 @@ async function deleteProduct(req, res) {
     try {
         const id = req.params.id
         const deletedProduct = await Product.findById(id)
-        if (deletedProduct.productImage) {
-            fs.unlinkSync(`./public/images/products/card-images/${deletedProduct.productImage.id}`)
-            deletedProduct.productImage = ""
-        }
-        if (deletedProduct.productDescPictures.length > 0) {
-            deletedProduct.productDescPictures.forEach(image => {
-                fs.unlinkSync(`./public/images/products/extra-images/${image.id}`)
-            })
-            deletedProduct.productDescPictures = []
-        }
+        fs.unlinkSync(`./public/images/products/card-images/${deletedProduct.productImage.id}`)
+        fs.unlinkSync(`./public/images/products/portrait-images/${deletedProduct.productPortrait.id}`)
+        deletedProduct.productDescPictures.forEach(image => {
+            fs.unlinkSync(`./public/images/products/extra-images/${image.id}`)
+        })
+
         const deleteProduct = await Product.findByIdAndDelete(id)
         if (!deletedProduct) {
             return res.status(404).send({

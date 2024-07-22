@@ -23,14 +23,14 @@ const productSchema = new Schema({
     productPrice: { type: Number, required: true, min: 0, max: 999999 },
     productDesc: { type: String, required: true, minLength: 3, maxLength: 2000 },
     productImage: { type: Object, trim: true },
-    productPortrait: { type: String, trim: true },
+    productPortrait: { type: Object, trim: true },
     productDate: { type: Number, default: Date.now },
     createdAt: { type: Number, default: Date.now },
     updatedAt: { type: Number, default: Date.now },
     productDeveloper: { type: String, minLength: 3, maxLength: 100 },
     productVideo: { type: String, minLength: 3, maxLength: 500 },
     productDescPictures: { type: Array, trim: true },
-    productTags: { type: Array },
+    productTags: { type: Array, items: [ { type: Schema.Types.ObjectId, ref: "Tag" } ] },
     productMinReq: productMinReq,
     productMaxReq: productMaxReq
 })
