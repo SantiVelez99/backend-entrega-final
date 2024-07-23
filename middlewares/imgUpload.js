@@ -21,8 +21,8 @@ const storage = multer.diskStorage({
 })
 
 const imgUpload = multer({ storage: storage }).fields([
+    {name:'productDescPictures', maxCount: 10},
     {name:'productImage', maxCount: 1},
-    {name:'productDescPictures', maxCount: 6},
     {name:'productPortrait', maxCount: 1},
     {name:'userAvatar', maxCount: 1}
 ])

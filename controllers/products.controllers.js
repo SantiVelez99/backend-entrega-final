@@ -24,7 +24,7 @@ async function getProducts(req, res) {
 async function getProductByID(req, res) {
     try {
         const id = req.params.id
-        const product = await Product.findById(id)
+        const product = await Product.findById(id).populate("productTags", "name viewValue")
         if (!product) {
             return res.statuss(404).send({
                 ok: false,
@@ -49,6 +49,10 @@ async function getProductByID(req, res) {
 async function postProduct(req, res) {
     try {
         const product = new Product(req.body)
+        product.productMinReq = JSON.parse(req.body.productMinReq)
+        product.productMaxReq = JSON.parse(req.body.productMaxReq)
+        console.log(product)
+        console.log(req.files)
         if (req.files) {
             if (req.files.productImage) {
                 req.files.productImage.forEach(image => {
