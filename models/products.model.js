@@ -27,7 +27,7 @@ const productSchema = new Schema({
     productDeveloper: { type: String, minLength: 3, maxLength: 100 },
     productVideo: { type: String, minLength: 3, maxLength: 500 },
     productDescPictures: { type: Array, trim: true },
-    productTags: { type: Array, tag: { type: Schema.Types.ObjectId, ref: "Tag" } },
+    productTags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
     productMinReq: {type: Object, object: productMinReq},
     productMaxReq: {type: Object, object: productMaxReq}
 })

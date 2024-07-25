@@ -3,7 +3,7 @@ const fs = require('fs')
 
 async function getProducts(req, res) {
     try {
-        const products = await Product.find()
+        const products = await Product.find().populate("productTags", "name viewValue")
         if (products) {
             res.status(200).send({
                 ok: true,
@@ -94,6 +94,8 @@ async function editProduct(req, res) {
     try {
         const id = req.params.id
         const updtProduct = req.body
+        updtProduct.productMinReq = JSON.parse(req.body.productMinReq)
+        updtProduct.productMaxReq = JSON.parse(req.body.productMaxReq)
         const oldProduct = await Product.findById(id)
         updtProduct.updatedAt = Date.now()
         if (req.files) {
@@ -123,7 +125,7 @@ async function editProduct(req, res) {
                     updtProduct.productPortrait = { name: image.originalname, id: image.filename }
                 })
                 if (updtProduct.productPortrait.id) {
-                    fs.unlinkSync(`./public/images/products/card-images/${oldProduct.productPortrait.id}`)
+                    fs.unlinkSync(`./public/images/products/portrait-images/${oldProduct.productPortrait.id}`)
                 }
             } else {
                 delete updtProduct.productPortrait
