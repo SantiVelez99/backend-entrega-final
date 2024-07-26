@@ -8,6 +8,8 @@ router.get('/users/:id', userController.getUserById)
 
 router.post('/users', imgUpload, userController.postUser)
 
+router.post('/login', userController.logIn)
+
 router.put('/users/:id', imgUpload, userController.editUser)
 
 router.delete('/users/:id', userController.deleteUser)

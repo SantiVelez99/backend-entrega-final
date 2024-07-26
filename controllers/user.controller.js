@@ -2,6 +2,8 @@ const User = require('../models/user.model')
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 const fs = require('fs')
+const jwt = require('jsonwebtoken')
+const secret = process.env.SECRET
 
 async function getUsers(req, res) {
     try {
@@ -89,13 +91,14 @@ async function editUser(req, res) {
         const id = req.params.id
         const oldUser = await User.findById(id)
         const uptUser = req.body
-        uptUser.userPassword = undefined
         if (req.files.userAvatar) {
-            fs.unlinkSync(`./public/images/users/user-avatar/${oldUser.userAvatar.id}`)
             uptUser.userAvatar = {}
             req.files.userAvatar.forEach(image => {
                 uptUser.userAvatar = { name: image.originalname, id: image.filename }
             })
+            if(oldUser.userAvatar.id !== "user-profile-default.png"){
+                fs.unlinkSync(`./public/images/users/user-avatar/${oldUser.userAvatar.id}`)
+            }
         }
         const updatedUser = await User.findByIdAndUpdate(id, uptUser, { new: true })
         if (!updatedUser) {
@@ -138,4 +141,40 @@ async function deleteUser(req, res) {
         user: deletedUser
     })
 }
-module.exports = { getUsers, getUserById, postUser, editUser, deleteUser }
+
+async function logIn(req, res){
+
+    const email = req.body.userEmail
+    const password = req.body.userPassword
+    if(!email || !password ) { 
+        return res.status(404).send({
+            ok: false,
+            message: "Email y contraseña son requeridos"
+        })
+    }
+    const user = await User.findOne( { userEmail: { $regex: email, $options: "i" } })
+    if(!user){
+        return res.status(404).send({
+            ok: false,
+            message: "Datos incorrectos"
+        })
+    }
+    const match = await bcrypt.compare(password, user.userPassword)
+    if(!match){
+        return res.status(404).send({
+            ok: false,
+            message: "Datos incorrectos"
+        })
+    }
+    user.userPassword = undefined
+    const token = jwt.sign(user.toJSON(), secret, { expiresIn: '24H' })
+    res.status(200).send({
+        ok: true,
+        message: "Ingreso correcto",
+        user,
+        token
+    })
+}
+
+
+module.exports = { getUsers, getUserById, postUser, editUser, deleteUser, logIn }
