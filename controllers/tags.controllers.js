@@ -2,12 +2,21 @@ const Tag = require('../models/tag.model')
 
 async function getTags(req, res) {
     try {
-        const tags = await Tag.find()
+        const page = req.query.page || 0;
+        const limit = req.query.limit || 100;
+        const filter = []
+        if(req.query.name) filter.push({ name: { $regex: req.query.name, $options: 'i'} })
+            if(filter.length === 0) filter.push({})
+        const tags = await Tag.find({ $and:filter })
+        .skip(page * limit)
+        .limit(limit)
+        const total = await Tag.countDocuments({$and:filter})
         if (tags.length > 0) {
             res.status(200).send({
                 ok: true,
                 message: "Tags obtenidos correctamente",
-                tags
+                tags,
+                total
             })
         } else {
             res.status(404).send({

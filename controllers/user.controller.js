@@ -7,7 +7,17 @@ const secret = process.env.SECRET
 
 async function getUsers(req, res) {
     try {
-        const users = await User.find().select({ userPassword: 0 })
+        const page = req.query.page || 0;
+        const limit = req.query.limit || 100;
+        const filter = []
+        if (req.query.name) filter.push({ userName: { $regex: req.query.name, $options: 'i' } })
+        if (req.query.email) filter.push({ userEmail: { $regex: req.query.email, $options: 'i' } })
+        if (filter.length === 0) filter.push({})
+        const users = await User.find({ $and: filter })
+            .select({ userPassword: 0 })
+            .skip(page * limit)
+            .limit(limit)
+        const total = await User.countDocuments({$and:filter})
         if (!users) {
             res.status(404).send({
                 ok: false,
@@ -17,7 +27,8 @@ async function getUsers(req, res) {
         res.status(200).send({
             ok: true,
             message: "Usuarios obtenidos correctamente",
-            users: users
+            users,
+            total
         })
     } catch (error) {
         console.log(error)
@@ -96,7 +107,7 @@ async function editUser(req, res) {
             req.files.userAvatar.forEach(image => {
                 uptUser.userAvatar = { name: image.originalname, id: image.filename }
             })
-            if(oldUser.userAvatar.id !== "user-profile-default.png"){
+            if (oldUser.userAvatar.id !== "user-profile-default.png") {
                 fs.unlinkSync(`./public/images/users/user-avatar/${oldUser.userAvatar.id}`)
             }
         }
@@ -142,25 +153,25 @@ async function deleteUser(req, res) {
     })
 }
 
-async function logIn(req, res){
+async function logIn(req, res) {
 
     const email = req.body.userEmail
     const password = req.body.userPassword
-    if(!email || !password ) { 
+    if (!email || !password) {
         return res.status(404).send({
             ok: false,
             message: "Email y contraseña son requeridos"
         })
     }
-    const user = await User.findOne( { userEmail: { $regex: email, $options: "i" } })
-    if(!user){
+    const user = await User.findOne({ userEmail: { $regex: email, $options: "i" } })
+    if (!user) {
         return res.status(404).send({
             ok: false,
             message: "Datos incorrectos"
         })
     }
     const match = await bcrypt.compare(password, user.userPassword)
-    if(!match){
+    if (!match) {
         return res.status(404).send({
             ok: false,
             message: "Datos incorrectos"

@@ -3,6 +3,8 @@ const Schema = mongoose.Schema
 
 const orderSchema = new Schema({
     user: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+    userName: { type: String, required: true },
+    userEmail: { type: String, required: true, match: [ /.+@.+\..+/ ] },
     products: [
         {
             product: { type: Schema.Types.ObjectId, required: true, ref: "Product" },

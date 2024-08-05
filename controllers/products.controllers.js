@@ -3,12 +3,26 @@ const fs = require('fs')
 
 async function getProducts(req, res) {
     try {
-        const products = await Product.find().populate("productTags", "name viewValue")
+        console.log(req.query.name)
+        const page = req.query.page || 0;
+        const limit = req.query.limit || 100;
+        const filter = []
+        if (req.query.name) filter.push({ productName: { $regex: req.query.name, $options: 'i' } })
+        if (req.query.tag) filter.push({ productTags: req.query.tag })
+        if (filter.length === 0) filter.push({})
+        const products = await Product.find({
+            $and: filter
+        })
+            .populate("productTags", "name viewValue")
+            .skip(page * limit)
+            .limit(limit)
+            const total = await Product.countDocuments({$and:filter})
         if (products) {
             res.status(200).send({
                 ok: true,
                 message: "Get exitoso",
-                products: products
+                products,
+                total
             })
         }
     } catch (error) {

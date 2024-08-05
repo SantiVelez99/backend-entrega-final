@@ -1,12 +1,22 @@
 const Order = require('../models/order.model')
 const Product = require('../models/products.model')
-
-async function getOrders(req, res){
+async function getOrders(req, res) {
     try {
+        const page = req.query.page || 0;
+        const limit = req.query.limit || 100;
         const idUser = req.params.idUser
-        const filter = req.user.userRole === 'ADMIN_ROLE' ? idUser ? { user: idUser } : {} : { user: req.user._id }
-        const orders = await Order.find(filter).populate("user", "userName userEmail").populate("products.product", "productName productImage productPrice")
-        if(!orders){
+        let filter = req.user.userRole === 'ADMIN_ROLE' ?
+            idUser ? { user: idUser } : {} : { user: req.user._id }
+        if(req.query.name) filter = { userName: { $regex: req.query.name, $options: 'i'} }
+        if(req.query.email) filter = { userEmail: { $regex: req.query.email, $options: 'i'} }
+        console.log(filter)
+        const orders = await Order.find(filter)
+            .populate("user", "userName userEmail")
+            .populate("products.product", "productName productImage productPrice")
+            .skip(page * limit)
+            .limit(limit)
+        const total = await Order.countDocuments(filter)
+        if (!orders) {
             res.status(404).send({
                 ok: false,
                 message: "No se han encontrado ordenes"
@@ -15,7 +25,8 @@ async function getOrders(req, res){
         res.status(200).send({
             ok: true,
             message: "Ordenes obtenidas correctamente",
-            orders
+            orders,
+            total
         })
     } catch (error) {
         console.log(error)
@@ -26,11 +37,11 @@ async function getOrders(req, res){
     }
 }
 
-async function getOrderById(req, res){
+async function getOrderById(req, res) {
     try {
         const id = req.params.id
         const order = await Order.findById(id).populate("user", "userName userEmail").populate("products.product")
-        if(!order){
+        if (!order) {
             res.status(404).send({
                 ok: false,
                 message: "No se ha encontrado la orden"
@@ -51,17 +62,17 @@ async function getOrderById(req, res){
     }
 }
 
-async function checkPrices(products, total){
+async function checkPrices(products, total) {
     try {
         let totalOrder = 0
-        for(let prod of products) {
+        for (let prod of products) {
             totalOrder += prod.price * prod.quantity
-           const product = await Product.findById(prod.product)
-           if(!product || product.productPrice !== prod.price) {
-            throw new Error(`El producto no existe o su precio no coincide`)
-           }
+            const product = await Product.findById(prod.product)
+            if (!product || product.productPrice !== prod.price) {
+                throw new Error(`El producto no existe o su precio no coincide`)
+            }
         }
-        if(totalOrder !== total) {
+        if (totalOrder !== total) {
             throw new Error("El total no es correcto")
         }
     } catch (error) {
@@ -70,15 +81,15 @@ async function checkPrices(products, total){
     }
 }
 
-async function postOrder(req, res){
+async function postOrder(req, res) {
     try {
-        if(req.user._id !== req.body.user){
+        if (req.user._id !== req.body.user) {
             return res.status(400).send({
                 ok: false,
                 message: 'Los datos de autenticacion no coinciden.'
             })
         }
-        if(req.body.products.length === 0){
+        if (req.body.products.length === 0) {
             return res.status(400).send({
                 ok: false,
                 message: "La orden debe tener al menos un producto."
@@ -87,7 +98,7 @@ async function postOrder(req, res){
         await checkPrices(req.body.products, req.body.total)
         const order = new Order(req.body)
         const newOrder = await order.save()
-        if(!newOrder){
+        if (!newOrder) {
             res.status(500).send({
                 ok: false,
                 message: "Error al crear la orden",
@@ -108,11 +119,11 @@ async function postOrder(req, res){
     }
 }
 
-async function deleteOrder(req, res){
+async function deleteOrder(req, res) {
     try {
         const id = req.params.id
         const deletedOrder = await Order.findByIdAndDelete(id)
-        if(!deletedOrder){
+        if (!deletedOrder) {
             res.status(500).send({
                 ok: false,
                 message: "Error al borrar la orden",
@@ -133,4 +144,4 @@ async function deleteOrder(req, res){
     }
 }
 
-module.exports = { getOrders, postOrder, getOrderById, deleteOrder}
+module.exports = { getOrders, postOrder, getOrderById, deleteOrder }
