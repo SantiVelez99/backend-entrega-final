@@ -3,7 +3,6 @@ const fs = require('fs')
 
 async function getProducts(req, res) {
     try {
-        console.log(req.query.name)
         const page = req.query.page || 0;
         const limit = req.query.limit || 100;
         const filter = []
@@ -16,8 +15,9 @@ async function getProducts(req, res) {
             .populate("productTags", "name viewValue")
             .skip(page * limit)
             .limit(limit)
-            const total = await Product.countDocuments({$and:filter})
+        const total = await Product.countDocuments({ $and: filter })
         if (products) {
+            products.sort((a, b) => b.createdAt - a.createdAt)
             res.status(200).send({
                 ok: true,
                 message: "Get exitoso",

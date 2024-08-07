@@ -80,7 +80,17 @@ async function checkPrices(products, total) {
         throw new Error("Error al verificar el precio de productos")
     }
 }
-
+async function setTimesSold(products){
+    try {
+        for(let prod of products){
+            const product = await Product.findById(prod.product)
+            product.timesSold += prod.quantity
+            await Product.findByIdAndUpdate(product._id, product)
+        }
+    } catch (error) {
+        console.log(error)
+    }
+} 
 async function postOrder(req, res) {
     try {
         if (req.user._id !== req.body.user) {
@@ -98,6 +108,7 @@ async function postOrder(req, res) {
         await checkPrices(req.body.products, req.body.total)
         const order = new Order(req.body)
         const newOrder = await order.save()
+        await setTimesSold(req.body.products)
         if (!newOrder) {
             res.status(500).send({
                 ok: false,

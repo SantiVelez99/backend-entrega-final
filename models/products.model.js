@@ -29,7 +29,8 @@ const productSchema = new Schema({
     productDescPictures: { type: Array, trim: true },
     productTags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
     productMinReq: {type: Object, object: productMinReq},
-    productMaxReq: {type: Object, object: productMaxReq}
+    productMaxReq: {type: Object, object: productMaxReq},
+    timesSold: { type: Number, default: 0 }
 })
 
 module.exports = mongoose.model("Product", productSchema)
