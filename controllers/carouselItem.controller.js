@@ -3,8 +3,15 @@ const fs = require('fs')
 
 async function getCarouselItems(req, res) {
     try {
-        const items = await CarouselItem.find()
-        const total = await CarouselItem.countDocuments()
+        const limit = req.query.limit || 100
+        const page = req.query.page || 0
+        const filter = []
+        if(req.query.name) filter.push({ title: { $regex: req.query.name , $options: 'i'} })
+        if(filter.length === 0 ) filter.push({})
+        const items = await CarouselItem.find({$and: filter})
+                                        .skip(page * limit)
+                                        .limit(limit)
+        const total = await CarouselItem.countDocuments({$and: filter})
         if (!items) {
             res.status(404).send({
                 ok: false,

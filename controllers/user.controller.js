@@ -76,6 +76,7 @@ async function postUser(req, res) {
                 })
             }
         }
+        user.userRole = "CLIENT_ROLE"
         const newUser = await user.save()
         if (!newUser) {
             return res.status(500).send({
@@ -102,6 +103,7 @@ async function editUser(req, res) {
         const id = req.params.id
         const oldUser = await User.findById(id)
         const uptUser = req.body
+        delete uptUser.userRole
         if (req.files.userAvatar) {
             uptUser.userAvatar = {}
             req.files.userAvatar.forEach(image => {
