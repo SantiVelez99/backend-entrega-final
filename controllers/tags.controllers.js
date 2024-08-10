@@ -61,7 +61,7 @@ async function postTag(req, res) {
         const tag = new Tag(req.body)
         const newTag = await tag.save();
         if(newTag){
-            res.status(200).send({
+            res.status(201).send({
                 ok: true,
                 message: "Tag creado correctamente",
                 tag: tag

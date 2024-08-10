@@ -73,7 +73,7 @@ async function postCarouselItem(req, res) {
                 message: "Error al crear el item"
             })
         }
-        res.status(200).send({
+        res.status(201).send({
             ok: true,
             message: "Item creado correctamente",
             newItem

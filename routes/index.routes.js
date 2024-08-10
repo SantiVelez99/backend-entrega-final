@@ -5,6 +5,7 @@ const usersRoutes = require('./users.routes')
 const tagsRoutes = require('./tags.routes')
 const orderRoutes = require('./order.routes')
 const carouselRoutes = require('./carouselItem.routes')
+const contactRoutes = require('./contact.routes')
 
-router.use([productsRoutes, tagsRoutes, usersRoutes, orderRoutes, carouselRoutes])
+router.use([productsRoutes, tagsRoutes, usersRoutes, orderRoutes, carouselRoutes, contactRoutes])
 module.exports = router
