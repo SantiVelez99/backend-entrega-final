@@ -9,7 +9,6 @@ async function getOrders(req, res) {
             idUser ? { user: idUser } : {} : { user: req.user._id }
         if(req.query.name) filter = { userName: { $regex: req.query.name, $options: 'i'} }
         if(req.query.email) filter = { userEmail: { $regex: req.query.email, $options: 'i'} }
-        console.log(filter)
         const orders = await Order.find(filter)
             .populate("user", "userName userEmail")
             .populate("products.product", "productName productImage productPrice")

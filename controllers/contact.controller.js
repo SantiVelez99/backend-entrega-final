@@ -3,18 +3,29 @@ const fs = require('fs')
 
 async function getContacts(req, res){
     try {
-        const tickets = Contact.find()
+        const page = req.query.page || 0;
+        const limit = req.query.limit || 100;
+        const idUser = req.params.idUser
+        let filter = req.user.userRole === 'ADMIN_ROLE' ? idUser ? { user: idUser } : {} : { user: req.user._id }
+        if(req.query.name) filter = { fullName: { $regex: req.query.name, $options: 'i' } }
+        if(req.query.email) filter = { email: { $regex: req.query.email, $options: 'i' } }
+        const tickets = await Contact.find(filter)
+                                    .skip(page * limit)
+                                    .limit(limit)
+        const total = await Contact.countDocuments(filter)
         if(tickets.length === 0){
             res.status(404).send({
                 ok: false,
                 message: "No se han encontrado tickets"
             })
+        } else {
+            res.status(200).send({
+                ok: true,
+                message: "Tickets obtenidos correctamente",
+                tickets,
+                total
+            })
         }
-        res.status(200).send({
-            ok: true,
-            message: "Tickets obtenidos correctamente",
-            tickets
-        })
     } catch (error) {
         console.log(error)
         res.status(500).send({
@@ -24,10 +35,11 @@ async function getContacts(req, res){
     }
 }
 
-async function getContactById(res, req){
+async function getContactById(req, res){
     try {
         const id = req.params.id
-        const ticket = Contact.findById(id)
+        console.log(id)
+        const ticket = await Contact.findById(id)
         if(!ticket){
             res.status(404).send({
                 ok: false,
@@ -80,7 +92,37 @@ async function postContact(req, res){
     }
 }
 
+async function deleteContact(req, res){
+    try {
+        const id = req.params.id
+        const dltTicket = await Contact.findById(id)
+        dltTicket.contactImages.forEach(image => {
+            fs.unlinkSync(`./public/images/contact/${image.id}`)
+        })
+
+        const deleteTicket = await Contact.findByIdAndDelete(id)
+        if(!deleteTicket){
+            return res.status(404).send({
+                ok: false,
+                message: "No se ha encontrado el ticket"
+            })
+        }
+        res.status(200).send({
+            ok: true,
+            message: "Ticket eliminado correctamente",
+            deleteTicket
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({
+            ok: false,
+            message: "Error al eliminar el ticket"
+        })
+    }
+}
+
+
 
 module.exports = {
-    getContacts, getContactById, postContact
+    getContacts, getContactById, postContact, deleteContact
 }

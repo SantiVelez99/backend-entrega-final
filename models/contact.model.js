@@ -7,7 +7,8 @@ const contactSchema = new Schema({
     email: { type: String, required: true, match: [ /.+@.+\..+/ ], minLength: 3, maxLength: 80 },
     contactDate: { type: Number, default: Date.now },
     message: { type: String, minLength: 10, maxLength: 1000, required: true },
-    contactImages: { type: Array, trim: true } 
+    contactImages: { type: Array, trim: true },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true }
 })
 
 module.exports = mongoose.model("Contact", contactSchema)
