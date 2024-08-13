@@ -38,7 +38,6 @@ async function getContacts(req, res){
 async function getContactById(req, res){
     try {
         const id = req.params.id
-        console.log(id)
         const ticket = await Contact.findById(id)
         if(!ticket){
             res.status(404).send({

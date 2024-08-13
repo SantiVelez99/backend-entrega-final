@@ -65,8 +65,6 @@ async function postProduct(req, res) {
         const product = new Product(req.body)
         product.productMinReq = JSON.parse(req.body.productMinReq)
         product.productMaxReq = JSON.parse(req.body.productMaxReq)
-        console.log(product)
-        console.log(req.files)
         if (req.files) {
             if (req.files.productImage) {
                 req.files.productImage.forEach(image => {
